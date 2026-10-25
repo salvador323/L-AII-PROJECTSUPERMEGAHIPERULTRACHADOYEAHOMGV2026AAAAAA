@@ -1,0 +1,5 @@
+programa ejemplo
+hexa res;
+res = 10O - 3O * 2O - 1O;
+escribir(res);
+finprograma
