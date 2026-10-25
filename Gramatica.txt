@@ -9,17 +9,20 @@
 9. <listaid>	-> id<listaf>
 10. <listaf>	-> , id<listaf>
 11. <listaf>	->
-12. <expresión>	-> <expr><exprf>
-13. <exprf>	-> <oper><expr><exprf>
+12. <expresión>	-> <expterm><exprf>
+13. <exprf>	-> <oper><expterm><exprf>
 14. <exprf>	->
-15. <expr>	-> id
-16. <expr>	-> litbinaria
-17. <expr>	-> litoctal
-18. <expr>	-> lithexa
-19. <tipo>	-> binario
-20. <tipo>	-> octal
-21. <tipo>	-> hexa
-22. <oper>	-> +
-23. <oper>	-> -
-24. <oper>	-> /
-25. <oper>	-> *
+15. <expterm> -> <expr><termf>
+16. <termf> -> <operterm><expr><termf>
+17. <termf> -> 
+18. <expr>	-> id
+19. <expr>	-> litbinaria
+20. <expr>	-> litoctal
+21. <expr>	-> lithexa
+22. <tipo>	-> binario
+23. <tipo>	-> octal
+24. <tipo>	-> hexa
+25. <oper>	-> +
+26. <oper>	-> -
+27. <operterm>	-> /
+28. <operterm>	-> *
