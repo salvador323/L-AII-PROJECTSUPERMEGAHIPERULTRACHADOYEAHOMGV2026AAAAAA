@@ -8,6 +8,8 @@
     Clase que contiene toda la lógica del parser.
 __________________________________________________________________________________
 */
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Parser {
@@ -124,33 +126,44 @@ public class Parser {
         return ids;
     }
 
-    // 12. <expresión>	-> <expr><exprf>
-    // 13. <exprf>	-> <oper><expr><exprf>
+    // 12. <expresión>	-> <expterm><exprf>
+    // 13. <exprf>	-> <oper><expterm><exprf>
     // 14. <exprf>	->
-    // 22. <oper>	-> +
-    // 23. <oper>	-> -
-    // 24. <oper>	-> /
-    // 25. <oper>	-> *
+    // 15. <expterm> -> <expr><termf>
+    // 16. <termf> -> <operterm><expr><termf>
+    // 17. <termf> -> 
     private Node expresion(){
-        Node left = expr();
+        Node left = expterm(); // guarda lo que esta antes del operdor
 
-        // 22. <oper>	-> +
-        // 23. <oper>	-> -
-        // 24. <oper>	-> /
-        // 25. <oper>	-> *
-        while(coincide("+") || coincide("-") || coincide("*") || coincide("/")) {
-            String op = a.getLexema();
-            match(op);
-            Node right = expr();
-            left = new BinOp(op,left,right);
+        // 25. <oper>	-> +
+        // 26. <oper>	-> -
+        while(coincide("+") || coincide("-")) {
+            String op = a.getLexema(); // guarda el operador
+            match(op); // lo consume
+            Node right = expterm(); // guarda lo que esta despues del oeprador
+            left = new BinOp(op,left,right); // se crea la estructura de la operacion juntanto los elementos
         }
         return left;
     }
 
-    // 15. <expr>	-> id
-    // 16. <expr>	-> litbinaria
-    // 17. <expr>	-> litoctal
-    // 18. <expr>	-> lithexa
+    private Node expterm(){
+        Node left = expr(); // guarda lo que esta antes del operdor
+
+        // 27. <operterm>	-> /
+        // 28. <operterm>	-> *
+        while(coincide("*") || coincide("/")) {
+            String op = a.getLexema(); // guarda el operador
+            match(op); // lo consume
+            Node right = expr(); // guarda lo que esta despues del oeprador
+            left = new BinOp(op,left,right); // se crea la estructura de la operacion juntanto los elementos
+        }
+        return left;
+    }
+
+    // 18. <expr>	-> id
+    // 19. <expr>	-> litbinaria
+    // 20. <expr>	-> litoctal
+    // 21. <expr>	-> lithexa
     private Node expr(){
         if(coincide("id")){
             String id = a.getLexema();
@@ -167,9 +180,9 @@ public class Parser {
         }
     }
 
-    // 19. <tipo>	-> binario
-    // 20. <tipo>	-> octal
-    // 21. <tipo>	-> hexa
+    // 22. <tipo>	-> binario
+    // 23. <tipo>	-> octal
+    // 24. <tipo>	-> hexa
     private String tipo() {
         String t = a.getLexema();
         if(coincide("binario")) match("binario");
@@ -177,5 +190,5 @@ public class Parser {
         else if ( coincide("hexa")) match("hexa");
         else throw new RuntimeException("Se esperaba un tipo de dato");
         return t;
-    }    
+    }
 }
