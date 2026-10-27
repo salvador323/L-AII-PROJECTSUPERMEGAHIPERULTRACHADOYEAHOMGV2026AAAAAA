@@ -64,9 +64,9 @@ import java.util.Map;
             if(initialized){
                 sym.value = value;
                 sym.initialized = true;
-                System.err.println("Bien " + name + " = " + value);             
+                System.out.println("Bien " + name + " = " + value);             
             }else{
-                System.err.println("Mal, error semantico " + 
+                System.out.println("Mal, error semantico " + 
                                     "(tipo incompatible), la variable "+ name + "es de tipo " + sym.type+ " pero recibio " + value);
             }
         }
