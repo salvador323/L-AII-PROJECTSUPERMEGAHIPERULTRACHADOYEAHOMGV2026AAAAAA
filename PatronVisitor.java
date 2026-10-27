@@ -67,7 +67,7 @@ public class PatronVisitor {
         }
     }
 
-    // 8. <sent> -> escribir(<expresion>);
+    // 8. <sent> -> escribir(<expresion>); revisa que sea valido
     public void visit(WriteNode nodo){
         if (nodo.expresion instanceof Var) {
             Var v = (Var) nodo.expresion;
