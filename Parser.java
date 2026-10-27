@@ -8,11 +8,9 @@
     Clase que contiene toda la lógica del parser.
 __________________________________________________________________________________
 */
-
-import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+
 
 public class Parser {
     private Lexer lexer;
@@ -43,7 +41,7 @@ public class Parser {
         }
     }
 
-    // 1. <inicio>  -> programa id <sentencias> finprograma
+    // 1. <inicio>	-> programa id <sentencias> finprograma
     public Node programa(){
         match("programa");
         String nombrePrograma = a.getLexema(); 
@@ -55,9 +53,9 @@ public class Parser {
         return new ProgramNode(nombrePrograma, sentencias);
     }
 
-    // 2. <sentencias>  -> <sent><sentf>
-    // 3. <sentf>   -> <sent><sentf>
-    // 4. <sentf>   ->
+    // 2. <sentencias>	-> <sent><sentf>
+    // 3. <sentf>	-> <sent><sentf>
+    // 4. <sentf>	->
     private List<Node> sentencias() {
         List<Node> lista = new ArrayList<>();
         
@@ -68,19 +66,19 @@ public class Parser {
         return lista;
     }
 
-    // 5. <sent>    -> <tipo><listaid>;
-    // 6. <sent>    -> id = <expresión>;
-    // 7. <sent>    -> leer (<listaid>);
-    // 8. <sent>    -> escribir (<expresión>);
+    // 5. <sent>	-> <tipo><listaid>;
+    // 6. <sent>	-> id = <expresión>;
+    // 7. <sent>	-> leer (<listaid>);
+    // 8. <sent>	-> escribir (<expresión>);
     private Node sent(){
-        // 5. <sent>    -> <tipo><listaid>;
+        // 5. <sent>	-> <tipo><listaid>;
         if(coincide("binario") || coincide("octal") || coincide("hexa")) {
             String tipo = tipo();
             List<String> ids = listaId();
             match(";");
             return new DeclGroupNode(tipo, ids);
         }
-        // 6. <sent>    -> id = <expresión>;
+        // 6. <sent>	-> id = <expresión>;
         else if(coincide("id")) {
             String id = a.getLexema();
             match("id");
@@ -89,7 +87,7 @@ public class Parser {
             match(";");
             return new Assign(id,exp);
         }
-        // 7. <sent>    -> leer (<listaid>);
+        // 7. <sent>	-> leer (<listaid>);
         else if ( coincide("leer")){
             match("leer");
             match("(");
@@ -98,7 +96,7 @@ public class Parser {
             match(";");
             return new ReadNode(ids);
         }
-        // 8. <sent>    -> escribir (<expresión>);
+        // 8. <sent>	-> escribir (<expresión>);
         else if (coincide("escribir")){
             match("escribir");
             match("(");
@@ -112,9 +110,9 @@ public class Parser {
         }
     }
 
-    // 9. <listaid> -> id<listaf>
-    // 10. <listaf> -> , id<listaf>
-    // 11. <listaf> ->
+    // 9. <listaid>	-> id<listaf>
+    // 10. <listaf>	-> , id<listaf>
+    // 11. <listaf>	->
     private List<String> listaId(){
         List<String> ids = new ArrayList<>();
         ids.add(a.getLexema());
@@ -128,33 +126,44 @@ public class Parser {
         return ids;
     }
 
-    // 12. <expresión>  -> <expr><exprf>
-    // 13. <exprf>  -> <oper><expr><exprf>
-    // 14. <exprf>  ->
-    // 22. <oper>   -> +
-    // 23. <oper>   -> -
-    // 24. <oper>   -> /
-    // 25. <oper>   -> *
+    // 12. <expresión>	-> <expterm><exprf>
+    // 13. <exprf>	-> <oper><expterm><exprf>
+    // 14. <exprf>	->
+    // 15. <expterm> -> <expr><termf>
+    // 16. <termf> -> <operterm><expr><termf>
+    // 17. <termf> -> 
     private Node expresion(){
-        Node left = expr();
+        Node left = expterm(); // guarda lo que esta antes del operdor
 
-        // 22. <oper>   -> +
-        // 23. <oper>   -> -
-        // 24. <oper>   -> /
-        // 25. <oper>   -> *
-        while(coincide("+") || coincide("-") || coincide("*") || coincide("/")) {
-            String op = a.getLexema();
-            match(op);
-            Node right = expr();
-            left = new BinOp(op,left,right);
+        // 25. <oper>	-> +
+        // 26. <oper>	-> -
+        while(coincide("+") || coincide("-")) {
+            String op = a.getLexema(); // guarda el operador
+            match(op); // lo consume
+            Node right = expterm(); // guarda lo que esta despues del oeprador
+            left = new BinOp(op,left,right); // se crea la estructura de la operacion juntanto los elementos
         }
         return left;
     }
 
-    // 15. <expr>   -> id
-    // 16. <expr>   -> litbinaria
-    // 17. <expr>   -> litoctal
-    // 18. <expr>   -> lithexa
+    private Node expterm(){
+        Node left = expr(); // guarda lo que esta antes del operdor
+
+        // 27. <operterm>	-> /
+        // 28. <operterm>	-> *
+        while(coincide("*") || coincide("/")) {
+            String op = a.getLexema(); // guarda el operador
+            match(op); // lo consume
+            Node right = expr(); // guarda lo que esta despues del oeprador
+            left = new BinOp(op,left,right); // se crea la estructura de la operacion juntanto los elementos
+        }
+        return left;
+    }
+
+    // 18. <expr>	-> id
+    // 19. <expr>	-> litbinaria
+    // 20. <expr>	-> litoctal
+    // 21. <expr>	-> lithexa
     private Node expr(){
         if(coincide("id")){
             String id = a.getLexema();
@@ -171,9 +180,9 @@ public class Parser {
         }
     }
 
-    // 19. <tipo>   -> binario
-    // 20. <tipo>   -> octal
-    // 21. <tipo>   -> hexa
+    // 22. <tipo>	-> binario
+    // 23. <tipo>	-> octal
+    // 24. <tipo>	-> hexa
     private String tipo() {
         String t = a.getLexema();
         if(coincide("binario")) match("binario");
@@ -181,108 +190,5 @@ public class Parser {
         else if ( coincide("hexa")) match("hexa");
         else throw new RuntimeException("Se esperaba un tipo de dato");
         return t;
-    }    
-
-    //---------------------------------------------------------
-    /*
-    1 Inicio, Patrón Visitor
-    */
-    //Tabla de simbolos
-    class Symbol{
-        String name, type;
-        Object value;
-        Boolean initialized;
-
-        public Symbol(String name, String type, Object value, Boolean initialized){
-            this.name = name;
-            this.type = type;
-            this.value = value;
-            this.initialized = initialized;
-        }
-    }
-
-    class SymbolTable{
-        Map<String, Symbol> table = new HashMap<>();
-
-        //Metodos a desarrollar
-        //Metodo que valida si una variable ya fue declarada o no
-        public void addSymbol(String name, String type){
-            if(!table.containsKey(name)){
-                table.put(name, new Symbol(name, type, null, false));
-            }else{
-                System.out.println("Error semantico, la variable " + name + " ya fue declarada");
-            }
-        }
-
-        //Metodo que devuelve symbol o null
-        public Symbol lookup(String name){
-            return table.get(name);
-        }
-
-
-        public void updateSymbol(String name, Object value){
-            Symbol sym = lookup(name);
-
-            if(sym==null){ System.out.println("Error semantico " + name + " no ha sido declarada"); return;}
-
-            boolean initialized = false;
-            
-            if(sym.type.equals("binario") && Lexer.esBin(value.toString())){
-                initialized=true;
-            }else if(sym.type.equals("octal") && Lexer.esOct(value.toString())){
-                initialized=true;
-            }else if(sym.type.equals("hexa") && Lexer.esHexa(value.toString())){
-                initialized=true;
-            }
-
-            if(initialized){
-                sym.value = value;
-                sym.initialized = true;
-                System.err.println("Bien " + name + " = " + value);             
-            }else{
-                System.err.println("Mal, error semantico " + 
-                                    "(tipo incompatible), la variable "+ name + "es de tipo " + sym.type+ " pero recibio " + value);
-            }
-        }
-
-        //Metodo para validar errores
-        public void usesSymbol(String name){
-            Symbol sym = lookup(name);
-            if(sym == null){
-                System.out.println("Error semantico, la variable " + name + " no ha sido declarada");
-            } else if(!sym.initialized){
-                System.out.println("Error semantico, la variable " + name + " se esta usando sin haber sido inicializada");
-            }
-        }
-    }
-
-    //Patron Visitor
-    public class VisitorAssignament {
-        
-        private SymbolTable table;
-
-        public VisitorAssignament(SymbolTable table){
-            this.table = table;
-        }
-
-        // 5. <sent>    -> <tipo><listaid>;
-        // nodo de declaracion
-        public void visit(DeclGroupNode nodo){
-           for(String id:nodo.ids){
-               table.addSymbol(id, nodo.tipo);
-           }
-        }
-        
-        // 6. <sent>    -> id = <expresion>;
-        // nodo de asignacion
-        public void visit(Assign nodo){
-            table.updateSymbol(nodo.id, nodo.val);
-        }
-
-        // 15. <expr>   -> id
-        // nodo de lectura/escritura
-        public void visit(Var nodo){
-            table.usesSymbol(nodo.id);
-        }
     }
 }
