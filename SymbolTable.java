@@ -71,7 +71,7 @@ import java.util.Map;
             }
         }
 
-        //Metodo para validar errores
+        //Metodo para ver si el simbolo es null, y si esta inicializado
         public void usesSymbol(String name){
             Symbol sym = lookup(name);
             if(sym == null){
