@@ -88,7 +88,7 @@ public class PatronVisitor {
     
     // 6. <sent>    -> id = <expresion>;
     public void visit(Assign nodo){
-        // PENDIENTE: Desempaquetar nodo.expresion antes de actualizar
+        //PENDIENTE: Desempaquetar nodo.expresion antes de actualizar
         table.updateSymbol(nodo.id, nodo.expresion);
     }
 
@@ -97,8 +97,8 @@ public class PatronVisitor {
         table.usesSymbol(nodo.nombre);
     }
     
-    // PENDIENTE: Agregar método visit(ProgramNode) para recorrer sentencias
-    // PENDIENTE: Agregar método visit(ReadNode)
+    //PENDIENTE: Agregar metodo visit(ProgramNode) para recorrer sentencias
+    //PENDIENTE: Agregar metodo visit(ReadNode)
 }
 
 */
