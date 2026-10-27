@@ -1,8 +1,18 @@
+/* __________________________________________________________________________________
+    SymbolTable.java
+    Diseñado por:
+        Franco Monroy Meredith Alejandra
+        Muñoz Montalvo Ricardo Antonio
+        Taboada Ramirez Salvador
+
+    Clase que contiene la tabla de símbolos.
+__________________________________________________________________________________
+*/
 import java.util.HashMap;
 import java.util.Map;
 //---------------------------------------------------------
     /*
-    1 Inicio, Patrón Visitor
+    1 Inicio, Patrón Visitor, bitacora
     */
     //Tabla de simbolos
     class Symbol{
