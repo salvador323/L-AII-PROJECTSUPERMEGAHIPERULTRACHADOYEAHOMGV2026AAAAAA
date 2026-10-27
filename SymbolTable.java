@@ -31,7 +31,7 @@ import java.util.Map;
     class SymbolTable{
         Map<String, Symbol> table = new HashMap<>();
 
-        //Metodo que valida si una variable ya fue declarada o no
+        //Metodo que revisa si la variable ya existe en la tabla
         public void addSymbol(String name, String type){
             if(!table.containsKey(name)){
                 table.put(name, new Symbol(name, type, null, false));
