@@ -1,13 +1,3 @@
-/* __________________________________________________________________________________
-    PatronVisitor.java
-    Diseñado por:
-        Franco Monroy Meredith Alejandra
-        Muñoz Montalvo Ricardo Antonio
-        Taboada Ramirez Salvador
-
-    Clase que contiene toda la lógica del patrón visitor.
-__________________________________________________________________________________
-*/
 public class PatronVisitor {
 
     private SymbolTable table;
