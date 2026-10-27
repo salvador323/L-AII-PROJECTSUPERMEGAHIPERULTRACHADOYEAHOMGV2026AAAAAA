@@ -1,1 +1,1 @@
-En esta rama pedorra estaré enviando mis avances que estarán sujetos a constantes revisiones y correcciones. También se harán pruebas y registraré cada avance o inconveniente que tenga. Si hay alguna duda o aclaración, no estoy. 
+En esta rama estaré enviando mis avances que estarán sujetos a constantes revisiones y correcciones. También se harán pruebas y registraré cada avance o inconveniente que tenga. Si hay alguna duda o aclaración, no estoy. 
