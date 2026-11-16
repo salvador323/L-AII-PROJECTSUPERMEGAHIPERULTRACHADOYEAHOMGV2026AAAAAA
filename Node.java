@@ -9,6 +9,5 @@
 __________________________________________________________________________________
 */
 public abstract class Node {
-
-    
+    public abstract void accept(PatronVisitor visitor);
 }

@@ -19,4 +19,9 @@ public class BinOp extends Node {
         this.izq = izq;
         this.der = der;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

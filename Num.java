@@ -14,4 +14,9 @@ public class Num extends Node {
     public Num(String valor) {
         this.valor = valor;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

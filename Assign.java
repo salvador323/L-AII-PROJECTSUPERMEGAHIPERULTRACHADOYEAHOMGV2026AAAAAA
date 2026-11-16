@@ -16,4 +16,10 @@ public class Assign extends Node {
         this.id = id;
         this.expresion = expresion;
     }
+
+    //Para el visitor
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

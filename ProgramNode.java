@@ -19,4 +19,9 @@ public class ProgramNode extends Node {
         this.nombre = nombre;
         this.sentencias = sentencias;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

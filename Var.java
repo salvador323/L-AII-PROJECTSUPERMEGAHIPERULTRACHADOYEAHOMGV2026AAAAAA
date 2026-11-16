@@ -15,4 +15,9 @@ public class Var extends Node {
     public Var(String nombre) {
         this.nombre = nombre;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

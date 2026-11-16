@@ -17,4 +17,9 @@ public class ReadNode extends Node {
     public ReadNode(List<String> ids) {
         this.ids = ids;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }

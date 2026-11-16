@@ -15,4 +15,8 @@ public class WriteNode extends Node {
     public WriteNode(Node expresion) {
         this.expresion = expresion;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
 }

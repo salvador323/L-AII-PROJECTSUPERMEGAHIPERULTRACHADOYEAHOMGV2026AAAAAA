@@ -18,4 +18,9 @@ public class DeclGroupNode extends Node {
         this.tipo = tipo;
         this.ids = ids;
     }
+
+    public void accept(PatronVisitor visitor){
+        visitor.visit(this);
+    }
+
 }
