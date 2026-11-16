@@ -185,7 +185,7 @@ public class Lexer {
         return estadoActual.equals("q1"); // si el estado final es q1, entonces es un identificador
     }
 
-    public boolean esBin(String lexema){
+    public static boolean esBin(String lexema){
         String estadoActual = "q0";
 
         for(char entrada : lexema.toCharArray()){
@@ -213,7 +213,7 @@ public class Lexer {
         return estadoActual.equals("q3"); // si el estado final es q3, entonces es un binario
     }
 
-    public boolean esOct(String lexema){
+    public static boolean esOct(String lexema){
         String estadoActual = "q0";
         for(char entrada : lexema.toCharArray()){
             switch (estadoActual){
@@ -240,7 +240,7 @@ public class Lexer {
 
     }
 
-    public boolean esHexa(String lexema){
+    public static boolean esHexa(String lexema){
         String estadoActual = "q0";
         for(char entrada : lexema.toCharArray()){
             switch (estadoActual){
