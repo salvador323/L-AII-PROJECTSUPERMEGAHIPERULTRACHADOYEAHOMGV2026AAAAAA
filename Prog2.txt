@@ -1,0 +1,11 @@
+programa segundo
+binario a, b;
+octal c;
+hexa d;
+leer(a);
+a = 101B;
+b = 10B + 11B;
+c = 7O * 1O;
+d = ADFX - 0X;
+escribir(b);
+finprograma
