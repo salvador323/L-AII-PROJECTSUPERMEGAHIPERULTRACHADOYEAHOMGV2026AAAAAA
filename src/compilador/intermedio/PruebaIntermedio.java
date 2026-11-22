@@ -18,7 +18,7 @@ public class PruebaIntermedio {
     public static void main(String[] args) {
 
         // PASO 1: leer el archivo fuente y obtener una lista de líneas.
-        LectorArchivo lector = new LectorArchivo("Prog.txt");
+        LectorArchivo lector = new LectorArchivo("Prog2.txt");
         List<String> lineas = lector.leerArchivo();
         if (lineas.isEmpty()) { System.err.println("Archivo vacío"); return; }
 

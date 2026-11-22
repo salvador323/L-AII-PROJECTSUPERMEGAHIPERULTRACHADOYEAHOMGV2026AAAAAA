@@ -3,6 +3,7 @@ package compilador.principal;
 import compilador.intermedio.IntermedioVisitor;
 import compilador.intermedio.GeneradorCodigo;
 import compilador.intermedio.TACInstruction;
+import compilador.intermedio.TACOptimizer;
 import compilador.frontend.ProgramNode;
 import compilador.frontend.Parser;
 import compilador.lexico.Lexer;
@@ -33,13 +34,23 @@ public class PruebaCodigo {
         List<TACInstruction> tac = gen.getCodigo();
 
         System.out.println("Programa: " + arbol.nombre);
-        System.out.println("--- TAC generado ---");
+        System.out.println("--- TAC sin optimizar ---");
         for (TACInstruction q : tac) System.out.println(q);
 
-        // PASO 5: fase de generación (TAC → Assembly).
+        // PASO 4.5: optimización (TAC → TAC mejor).
+        // Tres pasadas iteradas hasta punto fijo: plegado, propagación y
+        // eliminación de código muerto. Adaptadas del ejemplo del profesor.
+        TACOptimizer opt = new TACOptimizer();
+        List<TACInstruction> tacOpt = opt.optimize(tac);
+
+        System.out.println();
+        System.out.println("--- TAC optimizado ---");
+        for (TACInstruction q : tacOpt) System.out.println(q);
+
+        // PASO 5: fase de generación (TAC optimizado → Assembly).
         // Recibe la lista de cuádruplas, NO el árbol.
         GeneradorCodigo genAsm = new GeneradorCodigo();
-        genAsm.generar(tac);
+        genAsm.generar(tacOpt);
 
         System.out.println();
         System.out.println("--- Assembly generado ---");
