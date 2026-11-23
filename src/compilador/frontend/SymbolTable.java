@@ -30,7 +30,7 @@ import java.util.Map;
         }
     }
 
-    class SymbolTable{
+    public class SymbolTable{
         Map<String, Symbol> table = new HashMap<>();
 
         //Metodo para agregar

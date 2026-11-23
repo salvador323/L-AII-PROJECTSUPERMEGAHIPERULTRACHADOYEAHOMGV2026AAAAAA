@@ -56,7 +56,7 @@ Reglas por nodo:
 - **WriteNode**: recorre la expresión para disparar validaciones.
 - **Num / Var / BinOp**: determinan el tipo resultante. `BinOp` valida que ambos lados coincidan.
 
-**Limitaciones**: no hay propagación de errores; `Symbol.value` no se llena; `read` no valida tipo.
+**Manejo de errores**: los errores se acumulan en una lista interna (`errores`) y se usa el estado `"error"` en `buzon` como cortafuegos para evitar mensajes en cascada ante una sola falla. (`Symbol.value` no se llena porque los valores constantes se propagan en la fase de TAC).
 
 ## Código intermedio (TAC)
 
@@ -200,15 +200,15 @@ Los `.txt` de entrada deben estar en la carpeta desde donde se ejecuta el proces
 
 **Hecho:**
 - Análisis léxico, sintáctico con AST y prueba de precedencia.
-- Análisis semántico con tabla de símbolos y patrón Visitor formal.
+- Análisis semántico con tabla de símbolos, patrón Visitor formal y acumulación de errores sin cascada (cortafuegos `"error"`).
+- Barrera semántica integrada en `PruebaCodigo`: detiene la compilación antes de generar TAC y Assembly si detecta errores (como en `Prog.txt`).
 - Generación de código intermedio (cuádruplas TAC).
 - Optimización de código intermedio (plegado de constantes, propagación de constantes, eliminación de código muerto).
 - Generación de código objeto (pseudo-ensamblador x86).
 - Reorganización en paquetes por fase.
 
 **Pendiente para siguiente iteración:**
-- Integrar la fase semántica como barrera en `PruebaCodigo`: correr `PatronVisitor` antes de generar TAC y detener el flujo si hay errores. Hoy `PruebaCodigo` no valida semántica y `Prog.txt` (hexa/octal) genera código sin advertencia.
-- Manejo de `leer` / `escribir` en TAC y ASM (hoy se ignoran en `IntermedioVisitor`).
+- Manejo de `leer` / `escribir` en TAC, optimizador y ASM (hoy se ignoran en `IntermedioVisitor`).
 - Unificar ambos visitors bajo una interfaz común (opcional).
 
 ## Autores
