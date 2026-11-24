@@ -63,13 +63,12 @@ public class PatronVisitor {
         }else{
             buzon = "";
             nodo.expresion.accept(this);//comparar tipos
+            sym.initialized = true;//marcar como inicializada
             if(buzon.equals("error")){
                 return;
             }
 
-            if(sym.type.equals(buzon)){
-                sym.initialized = true;//marcar como inicializada
-            }else{
+            if(!sym.type.equals(buzon)){
                 errores.add("Error semántico: Los tipos son incompatibles para la variable '" + nodo.id + "' (se esperaba " + sym.type + " pero se obtuvo " + buzon + ")");
             }
         }
