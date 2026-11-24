@@ -21,6 +21,7 @@ public class PatronVisitor {
     private SymbolTable table;
     private String buzon = "";//no perder el valor al pasar de num a assign
     private List<String> errores = new ArrayList<>(); // creamos una lista de errores para almacenar los mensajes de error
+    private boolean cero = false;
 
     public PatronVisitor(SymbolTable table){
         this.table = table;
@@ -46,7 +47,7 @@ public class PatronVisitor {
         for(String id : nodo.ids){
             boolean add = table.addSymbol(id, nodo.tipo);
             if(add == false){
-                errores.add("Error semantico: La variable '" + id + "' ya fue declarada");
+                errores.add("Error semántico: La variable '" + id + "' ya fue declarada");
             }
         }
     }
@@ -56,7 +57,7 @@ public class PatronVisitor {
     public void visit(Assign nodo){
         Symbol sym = table.lookup(nodo.id);
         if(sym==null){
-            errores.add("Error semantico: La variable '" + nodo.id + "' no ha sido delcarada");
+            errores.add("Error semántico: La variable '" + nodo.id + "' no ha sido declarada");
             buzon = "";
             nodo.expresion.accept(this);
         }else{
@@ -69,7 +70,7 @@ public class PatronVisitor {
             if(sym.type.equals(buzon)){
                 sym.initialized = true;//marcar como inicializada
             }else{
-                errores.add("Error semantico: Los tipos son incompatibles para la variable '" + nodo.id + "' (se esperaba " + sym.type + " pero se obtuvo " + buzon + ")");
+                errores.add("Error semántico: Los tipos son incompatibles para la variable '" + nodo.id + "' (se esperaba " + sym.type + " pero se obtuvo " + buzon + ")");
             }
         }
     }
@@ -79,7 +80,7 @@ public class PatronVisitor {
         for(String id : nodo.ids){
             Symbol sym = table.lookup(id);
             if(sym == null){
-                errores.add("Error semantico: La variable '" + id + "' no ha sido declarada");
+                errores.add("Error semántico: La variable '" + id + "' no ha sido declarada");
             } else {
                 sym.initialized = true;
             }
@@ -102,17 +103,19 @@ public class PatronVisitor {
         }else{
             buzon = "error";
         }
+        cero = nodo.valor.equals("0B") || nodo.valor.equals("0O") || nodo.valor.equals("0X");
     }
 
     public void visit(Var nodo){
+        cero = false;
         Symbol sym = table.lookup(nodo.nombre);
         if(sym == null){
-            errores.add("Error semantico: La variable '" + nodo.nombre + "' no ha sido declarada");
+            errores.add("Error semántico: La variable '" + nodo.nombre + "' no ha sido declarada");
             buzon = "error";
         }else{
             buzon = sym.type;
             if(sym.initialized == false){
-                errores.add("Error semantico: La variable '" + nodo.nombre + "' no ha sido inicializada");
+                errores.add("Error semántico: La variable '" + nodo.nombre + "' no ha sido inicializada");
             }
         }
     }
@@ -126,14 +129,22 @@ public class PatronVisitor {
 
         if(buzon_izq.equals("error") || buzon_der.equals("error")){
             buzon = "error";
+            cero = false;
             return;
         }
 
         if(!buzon_izq.equals(buzon_der)){
-            errores.add("Error semantico: No se pueden mezclar tipos en una operación");
+            errores.add("Error semántico: No se pueden mezclar tipos en una operación");
             buzon = "error";
+            cero = false;
         }else{
+            if(nodo.operador.equals("/") && cero){
+                errores.add("Error semántico: No se puede dividir entre 0");
+                buzon="error";
+                cero=false;
+            }
             buzon = buzon_izq;
+            cero=false;
         }
     }
 
