@@ -46,15 +46,14 @@ Cada fase consume la salida de la anterior. El AST es la pieza central: el semá
 
 Usa el patrón Visitor formal con doble despacho: `Node` declara `accept(PatronVisitor)`, cada nodo lo implementa con `visitor.visit(this)`, y `PatronVisitor` expone un `visit(TipoNodo)` por cada tipo.
 
-El visitor usa un campo `String buzon` como memoria temporal: las hojas (`Num`, `Var`) escriben su tipo, y los nodos compuestos (`Assign`, `BinOp`) lo leen para validar compatibilidad.
+El visitor usa un campo `String buzon` como memoria temporal (las hojas escriben su tipo y los nodos compuestos lo leen) y una bandera `boolean cero` para detectar literales nulos sin usar `instanceof`.
 
 Reglas por nodo:
-
-- **DeclGroupNode**: registra cada id con su tipo. Si ya existía, error de doble declaración.
-- **Assign**: recorre la expresión, compara tipo resultante con el declarado; si coincide, marca inicializada.
-- **ReadNode**: verifica que las variables existan y las marca inicializadas.
-- **WriteNode**: recorre la expresión para disparar validaciones.
-- **Num / Var / BinOp**: determinan el tipo resultante. `BinOp` valida que ambos lados coincidan.
+- `DeclGroupNode`: registra cada id con su tipo. Si ya existía, error de doble declaración.
+- `Assign`: recorre la expresión, compara tipo resultante con el declarado; si coincide, marca inicializada.
+- `ReadNode`: verifica que las variables existan y las marca inicializadas.
+- `WriteNode`: recorre la expresión para disparar validaciones.
+- `Num` / `Var` / `BinOp`: determinan el tipo resultante. `Num` activa la bandera `cero` si el literal es `0B`, `0O` o `0X`; `BinOp` valida que ambos lados coincidan y bloquea divisiones (`/`) cuando el operando derecho es cero literal.
 
 **Manejo de errores**: los errores se acumulan en una lista interna (`errores`) y se usa el estado `"error"` en `buzon` como cortafuegos para evitar mensajes en cascada ante una sola falla. (`Symbol.value` no se llena porque los valores constantes se propagan en la fase de TAC).
 
@@ -201,6 +200,7 @@ Los `.txt` de entrada deben estar en la carpeta desde donde se ejecuta el proces
 **Hecho:**
 - Análisis léxico, sintáctico con AST y prueba de precedencia.
 - Análisis semántico con tabla de símbolos, patrón Visitor formal y acumulación de errores sin cascada (cortafuegos `"error"`).
+- Validación de división entre cero literal (`0B`, `0O`, `0X`) en `PatronVisitor`.
 - Barrera semántica integrada en `PruebaCodigo`: detiene la compilación antes de generar TAC y Assembly si detecta errores (como en `Prog.txt`).
 - Generación de código intermedio (cuádruplas TAC).
 - Optimización de código intermedio (plegado de constantes, propagación de constantes, eliminación de código muerto).
