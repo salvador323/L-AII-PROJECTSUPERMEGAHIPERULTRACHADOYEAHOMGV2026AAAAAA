@@ -1,10 +1,9 @@
 package compilador.frontend;
 
 
+import compilador.lexico.Lexer;
 import java.util.ArrayList;
 import java.util.List;
-
-import compilador.lexico.Lexer;
 
 /* __________________________________________________________________________________
     PatronVisitor.java
@@ -102,7 +101,12 @@ public class PatronVisitor {
         }else{
             buzon = "error";
         }
-        cero = nodo.valor.equals("0B") || nodo.valor.equals("0O") || nodo.valor.equals("0X");
+        cero = true;
+        for(int i=0; i<nodo.valor.length()-1; i++){
+            if(nodo.valor.charAt(i)!='0'){
+                cero=false;
+            }
+        }
     }
 
     public void visit(Var nodo){
@@ -136,12 +140,11 @@ public class PatronVisitor {
             errores.add("Error semántico: No se pueden mezclar tipos en una operación");
             buzon = "error";
             cero = false;
-        }else{
-            if(nodo.operador.equals("/") && cero){
+        }else if(nodo.operador.equals("/") && cero){
                 errores.add("Error semántico: No se puede dividir entre 0");
                 buzon="error";
                 cero=false;
-            }
+        }else{
             buzon = buzon_izq;
             cero=false;
         }
