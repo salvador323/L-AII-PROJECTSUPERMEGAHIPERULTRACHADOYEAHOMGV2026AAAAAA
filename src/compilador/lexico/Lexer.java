@@ -90,7 +90,7 @@ public class Lexer {
             return clasificarToken(lexemaLeido, contaLine + 1); 
         }
         
-        return new Token ("$","EOF");
+        return new Token ("$","EOF", lineas.size());
     }
 
     
@@ -98,52 +98,52 @@ public class Lexer {
         
         if (esIdentificador(lexema)) {
             if (esReservada(lexema)) {
-                return agregarToken("Reservada", lexema);
+                return agregarToken("Reservada", lexema, numeroLinea);
             } else {
-               return agregarToken("Identificador", lexema);
+            return agregarToken("Identificador", lexema, numeroLinea);
             }
         } else if (esBin(lexema)) {
-            return agregarToken("Binario", lexema);
+            return agregarToken("Binario", lexema, numeroLinea);
         } else if (esOct(lexema)) {
-            return agregarToken("Octal", lexema);
+            return agregarToken("Octal", lexema, numeroLinea);
         } else if (esHexa(lexema)) {
-            return agregarToken("Hexadecimal", lexema);
+            return agregarToken("Hexadecimal", lexema, numeroLinea);
         } else if (esCterSimple(lexema)) {
-            return agregarToken("Caracter Simple", lexema);
+            return agregarToken("Caracter Simple", lexema, numeroLinea);
         } else {
             System.err.println("Error Léxico: Lexema no reconocido '" + lexema + "' en la línea " + numeroLinea);
-            return new Token("ERROR",lexema); // agregue esta linea para que no diera nullpointerexception
+            return new Token("ERROR",lexema, numeroLinea); // agregue esta linea para que no diera nullpointerexception
         }
     }
     
-    private Token agregarToken(String tipo, String lexema) { // este metodo deberia llamarse generaToken
+    private Token agregarToken(String tipo, String lexema, int numeroLinea) { // este metodo deberia llamarse generaToken
         Token tokennuevo = new Token("","");
         switch (tipo) {
             case "Reservada":
                 switch (lexema) {
-                    case "programa": tokennuevo =(new Token("300", lexema)); break;
-                    case "binario": tokennuevo =(new Token("301", lexema)); break;
-                    case "octal": tokennuevo =(new Token("302", lexema)); break;
-                    case "hexa": tokennuevo =(new Token("303", lexema)); break;
-                    case "leer": tokennuevo =(new Token("304", lexema)); break;
-                    case "escribir": tokennuevo =(new Token("305", lexema)); break;
-                    case "finprograma": tokennuevo =(new Token("306", lexema)); break;
+                    case "programa": tokennuevo =(new Token("300", lexema, numeroLinea)); break;
+                    case "binario": tokennuevo =(new Token("301", lexema, numeroLinea)); break;
+                    case "octal": tokennuevo =(new Token("302", lexema, numeroLinea)); break;
+                    case "hexa": tokennuevo =(new Token("303", lexema, numeroLinea)); break;
+                    case "leer": tokennuevo =(new Token("304", lexema, numeroLinea)); break;
+                    case "escribir": tokennuevo =(new Token("305", lexema, numeroLinea)); break;
+                    case "finprograma": tokennuevo =(new Token("306", lexema, numeroLinea)); break;
                 }
                 break;
             case "Identificador":
-                tokennuevo =(new Token("295", lexema));
+                tokennuevo =(new Token("295", lexema, numeroLinea));
                 if (!tablaSimbolos.contains(lexema)) {
                     tablaSimbolos.add(lexema);
                 }
                 break;
             case "Binario":
-                tokennuevo =(new Token("296", lexema));
+                tokennuevo =(new Token("296", lexema, numeroLinea));
                 break;
             case "Octal":
-                tokennuevo =(new Token("297", lexema));
+                tokennuevo =(new Token("297", lexema, numeroLinea));
                 break;
             case "Hexadecimal":
-                tokennuevo =(new Token("298", lexema));
+                tokennuevo =(new Token("298", lexema, numeroLinea));
                 break;
             case "Caracter Simple":
                 tokennuevo =(new Token(Integer.toString((int) lexema.charAt(0)), lexema));
