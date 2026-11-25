@@ -14,10 +14,16 @@ ________________________________________________________________________________
 public class Token {
     private final String atributo;
     private final String lexema;
+    private final int getLinea;
 
     public Token(String atributo, String lexema){
+        this(atributo, lexema, 0);
+    }
+
+    public Token(String atributo, String lexema, int getLinea){
         this.atributo = atributo;
         this.lexema = lexema;
+        this.getLinea = getLinea;
     }
 
     public String getAtributo(){
@@ -26,5 +32,9 @@ public class Token {
 
     public String getLexema(){
         return this.lexema;
+    }
+
+    public int getLinea(){
+        return this.getLinea;
     }
 }
