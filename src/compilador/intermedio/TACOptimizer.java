@@ -51,7 +51,9 @@ public class TACOptimizer {
                         case "*": r = va * vb; break;
                         case "/": if (vb != 0) r = va / vb; break;
                     }
-                    if (r != null) {
+                    // Punto 5: solo plegar si el resultado no es negativo.
+                    // El lenguaje no tiene literales negativos (-1B no es válido)
+                    if (r != null && r >= 0) {
                         out.add(new TACInstruction("", formatLit(r, sufA), null, q.result));
                         continue;
                     }
@@ -102,8 +104,10 @@ public class TACOptimizer {
         return q.op != null && !q.op.isEmpty();
     }
 
+    
     private boolean esLiteral(String s) {
-        return s != null && s.matches("\\d+[BOX]");
+        // Punto 4: aceptar hexa con letras (0-9A-F), no solo dígitos.
+        return s != null && s.matches("[0-9A-F]+[BOX]");
     }
 
     private boolean esVariable(String s) {
