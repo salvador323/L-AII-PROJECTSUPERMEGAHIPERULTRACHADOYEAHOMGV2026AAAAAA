@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Lexer {
-    private List<String> tablaSimbolos = new ArrayList<>();
-    private List<String> palabrasReservadas = new ArrayList<>();
     
     private int contaLine = 0; // guarda el numero del renglon actual
     private int contcaracter = 0; // guarda la posicion exacta de la letra
@@ -132,9 +130,7 @@ public class Lexer {
                 break;
             case "Identificador":
                 tokennuevo =(new Token("295", lexema, numeroLinea));
-                if (!tablaSimbolos.contains(lexema)) {
-                    tablaSimbolos.add(lexema);
-                }
+                
                 break;
             case "Binario":
                 tokennuevo =(new Token("296", lexema, numeroLinea));
@@ -146,7 +142,7 @@ public class Lexer {
                 tokennuevo =(new Token("298", lexema, numeroLinea));
                 break;
             case "Caracter Simple":
-                tokennuevo =(new Token(Integer.toString((int) lexema.charAt(0)), lexema));
+                    tokennuevo = new Token(Integer.toString((int) lexema.charAt(0)), lexema, numeroLinea);
                 break;
         }
         return tokennuevo;
@@ -156,9 +152,6 @@ public class Lexer {
     public boolean esReservada(String lexema) {
         for (String palabra : reservadas) {
             if (lexema.equals(palabra)) {
-                if (!palabrasReservadas.contains(lexema)) {
-                    palabrasReservadas.add(lexema);
-                }
                 return true;
             }
         }
@@ -294,8 +287,5 @@ public class Lexer {
 
     }
     
-    //metodo para obtener la tabla de simbolos.
-    public List<String> getTablaSimbolos(){
-        return this.tablaSimbolos;
-    }
+    
 }
