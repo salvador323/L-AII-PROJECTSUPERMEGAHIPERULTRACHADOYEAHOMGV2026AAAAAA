@@ -1,0 +1,4 @@
+programa neg
+binario a;
+a = 10B - 11B;
+finprograma
