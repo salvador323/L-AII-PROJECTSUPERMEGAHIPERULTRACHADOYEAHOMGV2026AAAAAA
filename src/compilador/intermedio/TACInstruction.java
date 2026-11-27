@@ -27,6 +27,9 @@ public class TACInstruction {
         // Dos formatos de impresión:
         // 1) Asignación simple (op vacío y arg2 nulo):  "res = _t3"
         // 2) Operación binaria:                          "_t1 = 3O * 2O"
+        //agregando dos casos para que tostring no arroje null = null read null, sino formatie a read a / write b
+        if ("read".equals(op))  return "read " + result;
+        if ("write".equals(op)) return "write " + arg1;
         return arg2 == null && op.isEmpty() ?
                result + " = " + arg1 :
                result + " = " + arg1 + " " + op + " " + arg2;
