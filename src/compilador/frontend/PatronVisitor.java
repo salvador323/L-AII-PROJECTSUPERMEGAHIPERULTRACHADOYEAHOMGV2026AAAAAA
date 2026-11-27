@@ -2,6 +2,8 @@ package compilador.frontend;
 
 
 import compilador.lexico.Lexer;
+import java.util.ArrayList;
+import java.util.List;
 
 /* __________________________________________________________________________________
     PatronVisitor.java
@@ -16,10 +18,20 @@ ________________________________________________________________________________
 public class PatronVisitor {
 
     private SymbolTable table;
-    private String buzon = "";//no perder el valor al pasar de num a assing
+    private String buzon = "";//no perder el valor al pasar de num a assign
+    private List<String> errores = new ArrayList<>(); // creamos una lista de errores para almacenar los mensajes de error
+    private boolean cero = false;
 
     public PatronVisitor(SymbolTable table){
         this.table = table;
+    }
+
+    public boolean hayErrores(){
+        return !errores.isEmpty();
+    }
+
+    public List<String> getErrores(){
+        return errores;
     }
 
     //recorre la lista de sentencias en orden
@@ -34,7 +46,7 @@ public class PatronVisitor {
         for(String id : nodo.ids){
             boolean add = table.addSymbol(id, nodo.tipo);
             if(add == false){
-                System.out.println("La variable " + id + " ya fue declarada, error semántico");
+                errores.add("Error semántico: La variable '" + id + "' ya fue declarada");
             }
         }
     }
@@ -42,39 +54,31 @@ public class PatronVisitor {
     
     // 6. <sent> -> id = <expresion>;
     public void visit(Assign nodo){
-            Symbol sym = table.lookup(nodo.id);
+        Symbol sym = table.lookup(nodo.id);
         if(sym==null){
-            System.out.println("La variable " + nodo.id+ " no ha sido declarada");
+            errores.add("Error semántico: La variable '" + nodo.id + "' no ha sido declarada");
+            buzon = "";
+            nodo.expresion.accept(this);
         }else{
             buzon = "";
             nodo.expresion.accept(this);//comparar tipos
-            if(sym.type.equals(buzon)){
-                sym.initialized = true;//marcar como inicializada
-            }else{
-                System.out.println("Error, los tipos son incompatibles");
+            sym.initialized = true;//marcar como inicializada
+            if(buzon.equals("error")){
+                return;
+            }
+
+            if(!sym.type.equals(buzon)){
+                errores.add("Error semántico: Los tipos son incompatibles para la variable '" + nodo.id + "' (se esperaba " + sym.type + " pero se obtuvo " + buzon + ")");
             }
         }
     }
-
-    // 6. <sent> -> id = <expresion>;
-    /*public void visit(Assign nodo){
-        if (nodo.expresion instanceof Num) {
-            Num num = (Num) nodo.expresion;
-            table.updateSymbol(nodo.id, num.valor);
-        } else if (nodo.expresion instanceof Var) {
-            Var v = (Var) nodo.expresion;
-            table.usesSymbol(v.nombre);
-            table.updateSymbol(nodo.id, v.nombre);
-        }
-        //falta BinOp
-    }*/
 
     // 7. <sent> -> leer(<listaid>);
     public void visit(ReadNode nodo){
         for(String id : nodo.ids){
             Symbol sym = table.lookup(id);
             if(sym == null){
-                System.out.println("Error semantico, la variable " + id + " no ha sido declarada");
+                errores.add("Error semántico: La variable '" + id + "' no ha sido declarada");
             } else {
                 sym.initialized = true;
             }
@@ -83,6 +87,7 @@ public class PatronVisitor {
 
     // 8. <sent> -> escribir(<expresion>);
     public void visit(WriteNode nodo){
+        buzon = "";
         nodo.expresion.accept(this);
     }
 
@@ -93,17 +98,27 @@ public class PatronVisitor {
             buzon = "hexa";
         }else if(Lexer.esOct(nodo.valor)){
             buzon = "octal";
+        }else{
+            buzon = "error";
+        }
+        cero = true;
+        for(int i=0; i<nodo.valor.length()-1; i++){
+            if(nodo.valor.charAt(i)!='0'){
+                cero=false;
+            }
         }
     }
 
     public void visit(Var nodo){
+        cero = false;
         Symbol sym = table.lookup(nodo.nombre);
         if(sym == null){
-            System.out.println("La variable " + nodo.nombre + " no ha sido declarada");
+            errores.add("Error semántico: La variable '" + nodo.nombre + "' no ha sido declarada");
+            buzon = "error";
         }else{
             buzon = sym.type;
             if(sym.initialized == false){
-                System.out.println("La variable " + nodo.nombre + " no ha sido inicializada");
+                errores.add("Error semántico: La variable '" + nodo.nombre + "' no ha sido inicializada");
             }
         }
     }
@@ -113,51 +128,26 @@ public class PatronVisitor {
         nodo.izq.accept(this);
         String buzon_izq = buzon;
         nodo.der.accept(this);
-        if(!buzon_izq.equals(buzon)){
-            System.out.println("No se pueden mezclar tipos en una operación");
+        String buzon_der = buzon;
+
+        if(buzon_izq.equals("error") || buzon_der.equals("error")){
+            buzon = "error";
+            cero = false;
+            return;
+        }
+
+        if(!buzon_izq.equals(buzon_der)){
+            errores.add("Error semántico: No se pueden mezclar tipos en una operación");
+            buzon = "error";
+            cero = false;
+        }else if(nodo.operador.equals("/") && cero){
+                errores.add("Error semántico: No se puede dividir entre 0");
+                buzon="error";
+                cero=false;
+        }else{
+            buzon = buzon_izq;
+            cero=false;
         }
     }
 
-    /*
-    // 10B + 101B
-    public void visit(BinOp nodo){
-        nodo.izq.accept(this);
-        nodo.der.accept(this);
-    }
-    */
-
 }
-
-
-
-
-/*
-antes
-public class PatronVisitor {
-    
-    private SymbolTable table;
-
-    public PatronVisitor(SymbolTable table){
-        this.table = table;
-    }
-
-    // 5. <sent>    -> <tipo><listaid>;
-    public void visit(DeclGroupNode nodo){
-       for(String id:nodo.ids){
-           table.addSymbol(id, nodo.tipo);
-       }
-    }
-    
-    // 6. <sent>    -> id = <expresion>;
-    public void visit(Assign nodo){
-        //PENDIENTE: Desempaquetar nodo.expresion antes de actualizar
-        table.updateSymbol(nodo.id, nodo.expresion);
-    }
-
-    // 15. <expr>   -> id
-    public void visit(Var nodo){
-        table.usesSymbol(nodo.nombre);
-    }
-}
-
-*/

@@ -1,0 +1,7 @@
+programa lectura
+binario a, b;
+a = 101B;
+leer(a);
+b = a;
+escribir(b);
+finprograma

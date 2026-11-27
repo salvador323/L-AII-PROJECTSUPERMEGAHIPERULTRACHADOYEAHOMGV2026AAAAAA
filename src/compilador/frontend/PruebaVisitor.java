@@ -29,6 +29,10 @@ public class PruebaVisitor {
         lineas.add("x = 7O;");          // SI funciona: detecta el error de tipo
         lineas.add("y = x;");           // SI funciona: compara tipos, y queda inicializada
         lineas.add("y = 1B + 10B;");    // SI funciona: BinOp ya se maneja
+        // lineas para comprobar los errores 2 y 3
+        lineas.add("x = z + 1B;"); // z no esta declarado
+        lineas.add("x = 1B + 7O;"); // tipos mezclados
+
         lineas.add("finprograma");
 
         // Mostramos el codigo y lo que esperamos que pase con cada linea
@@ -70,6 +74,12 @@ public class PruebaVisitor {
         // lectura, escritura) a su visit correspondiente. Los mensajes de
         // "Bien", "Mal" y los errores salen en este paso.
         visitor.visit(arbol);
+
+        if(visitor.hayErrores()){
+            for(String error : visitor.getErrores()){
+                System.out.println(error);
+            }
+        }
 
         // PASO 8: revisamos como quedo la tabla al final.
         // Aqui se ve que variables quedaron inicializadas y con que valor.

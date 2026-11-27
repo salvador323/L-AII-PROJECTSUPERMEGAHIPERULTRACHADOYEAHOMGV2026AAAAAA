@@ -11,7 +11,7 @@ El código está organizado en cuatro paquetes, uno por fase:
 | `compilador.lexico` | Lexer, Token, LectorArchivo |
 | `compilador.frontend` | Parser, nodos del AST, SymbolTable, PatronVisitor |
 | `compilador.intermedio` | TACInstruction, IntermedioVisitor, TACOptimizer, GeneradorCodigo |
-| `compilador.principal` | ParserTest, PruebaCodigo |
+| `compilador.principal` | ParserTest, PruebaCodigo, PruebaPunto7 |
 
 ## La gramática
 
@@ -46,7 +46,7 @@ Cada fase consume la salida de la anterior. El AST es la pieza central: el semá
 
 Usa el patrón Visitor formal con doble despacho: `Node` declara `accept(PatronVisitor)`, cada nodo lo implementa con `visitor.visit(this)`, y `PatronVisitor` expone un `visit(TipoNodo)` por cada tipo.
 
-El visitor usa un campo `String buzon` como memoria temporal: las hojas (`Num`, `Var`) escriben su tipo, y los nodos compuestos (`Assign`, `BinOp`) lo leen para validar compatibilidad.
+El visitor usa un campo `String buzon` como memoria temporal (las hojas escriben su tipo y los nodos compuestos lo leen) y una bandera `boolean cero` para detectar literales nulos sin usar `instanceof`.
 
 Reglas por nodo:
 
@@ -54,9 +54,9 @@ Reglas por nodo:
 - **Assign**: recorre la expresión, compara tipo resultante con el declarado; si coincide, marca inicializada.
 - **ReadNode**: verifica que las variables existan y las marca inicializadas.
 - **WriteNode**: recorre la expresión para disparar validaciones.
-- **Num / Var / BinOp**: determinan el tipo resultante. `BinOp` valida que ambos lados coincidan.
+- **Num / Var / BinOp**: determinan el tipo resultante. `Num` activa la bandera `cero` si el literal es `0B`, `0O` o `0X`; `BinOp` valida que ambos lados coincidan y bloquea divisiones (`/`) cuando el operando derecho es cero literal.
 
-**Limitaciones**: no hay propagación de errores; `Symbol.value` no se llena; `read` no valida tipo.
+**Manejo de errores**: los errores se acumulan en una lista interna (`errores`) y se usa el estado `"error"` en `buzon` como cortafuegos para evitar mensajes en cascada ante una sola falla. (`Symbol.value` no se llena porque los valores constantes se propagan en la fase de TAC).
 
 ## Código intermedio (TAC)
 
@@ -67,12 +67,19 @@ Cada instrucción es una cuádrupla: `TACInstruction(op, arg1, arg2, result)`.
 - **Hojas**: devuelven su texto, no emiten.
 - **BinOp**: emite cuádrupla con temporal nuevo y devuelve el temporal.
 - **Assign**: emite `(op="", arg1=valor, arg2=null, result=id)`.
+- **ReadNode**: emite `(op="read", arg1=null, arg2=null, result=id)` por cada id.
+- **WriteNode**: evalúa la expresión y emite `(op="write", arg1=valor, arg2=null, result=null)`.
 
-Ejemplo con `Prog.txt`:
-_t1 = 3O * 2O
-_t2 = 10O - _t1
-_t3 = _t2 - 1O
-res = _t3
+Ejemplo con `Prog2.txt` (TAC sin optimizar):
+read a
+a = 101B
+_t1 = 10B + 11B
+b = _t1
+_t2 = 7O * 1O
+c = _t2
+_t3 = ADFX - 0X
+d = _t3
+write b
 
 
 La recursión en post-orden respeta automáticamente la precedencia que ya resolvió el parser.
@@ -87,11 +94,14 @@ La recursión en post-orden respeta automáticamente la precedencia que ya resol
 | Propagación de constantes | Reemplaza variables asignadas a constantes por su valor | `x = 101B; b = x` → `b = 101B` |
 | Eliminación de código muerto | Quita temporales `_tN` que nunca se leen | `_t1 = ...` sin usos → se elimina |
 
-**Adaptaciones al proyecto**: los literales llevan sufijo `B/O/X` (no son decimales puros como en el ejemplo del profesor); la asignación se representa con `op = ""` (no con `"="`); los temporales son `_tN` (no `tN`).
+**Adaptaciones al proyecto**: los literales llevan sufijo `B/O/X` (no son decimales puros como en el ejemplo del profesor); la asignación se representa con `op = ""` (no con `"="`); los temporales son `_tN` (no `tN`); `esLiteral` acepta hexa con letras (`[0-9A-F]+[BOX]`); `foldConstants` no pliega operaciones cuyo resultado sea negativo, porque el lenguaje no tiene literales negativos (`-1B` no es válido).
+
+**Manejo de `read`**: el optimizador invalida constantes con cualquier operación no-aritmética. Al ver `read a`, `propagateConstants` elimina `a` del mapa de constantes. Por eso `a = 101B; leer(a); b = a` produce `b = a` en el TAC optimizado, en lugar de `b = 101B`.
 
 Ejemplo con `Prog2.txt`:
 
 TAC sin optimizar:
+read a
 a = 101B
 _t1 = 10B + 11B
 b = _t1
@@ -99,12 +109,15 @@ _t2 = 7O * 1O
 c = _t2
 _t3 = ADFX - 0X
 d = _t3
+write b
 
 TAC optimizado:
+read a
 a = 101B
 b = 101B
 c = 7O
 d = ADFX
+write 101B
 
 
 El bucle `do-while` itera hasta que el tamaño ya no cambie: cada pasada de eliminación de código muerto reduce el tamaño, lo que habilita que el siguiente plegado pueda evaluar más operaciones.
@@ -120,12 +133,18 @@ Traduce cada cuádrupla a ensamblador x86 simplificado (acumulador `eax`). **No 
 | `_t = a * b` | `MOV eax, a` / `MUL b` / `MOV _t, eax` |
 | `_t = a / b` | `MOV eax, a` / `DIV b` / `MOV _t, eax` |
 | `x = _t` | `MOV x, _t` |
+| `read x` | `READ x` |
+| `write x` | `WRITE x` |
+
+`READ` y `WRITE` son pseudo-instrucciones que representan llamadas al sistema de entrada/salida. No son x86 real, pero el ASM del proyecto es simbólico.
 
 Salida con `Prog2.txt` (después de optimizar):
+READ a
 MOV a, 101B
 MOV b, 101B
 MOV c, 7O
 MOV d, ADFX
+WRITE 101B
 
 
 ## Sobre el Visitor y el código intermedio
@@ -146,7 +165,7 @@ Conviven dos estilos de recorrido:
 | Archivo | Paquete | Descripción |
 |---|---|---|
 | `Lexer.java` | lexico | Analizador léxico (autómatas por token). |
-| `Token.java` | lexico | Estructura del token (atributo y lexema). |
+| `Token.java` | lexico | Estructura del token (atributo, lexema, línea). |
 | `LectorArchivo.java` | lexico | Lee archivo de texto y lo entrega como lista de líneas. |
 | `Parser.java` | frontend | Parser descendente recursivo; construye el AST. |
 | `Node.java` | frontend | Clase base del AST. Declara `accept(PatronVisitor)`. |
@@ -168,10 +187,12 @@ Conviven dos estilos de recorrido:
 | `PruebaIntermedio.java` | intermedio | Cliente de prueba de TAC. |
 | `ParserTest.java` | principal | Cliente de prueba sintáctica. |
 | `PruebaCodigo.java` | principal | Cliente de prueba de TAC + optimización + ASM. |
+| `PruebaPunto7.java` | principal | Prueba automatizada del parser: 15 casos de errores con línea y token encontrado. |
 | `Gramatica.txt` | raíz | Gramática vigente. |
-| `Prog.txt` | raíz | Programa de entrada válido (con error semántico hexa/octal intencional). |
-| `Prog2.txt` | raíz | Programa más completo, semánticamente válido. |
+| `Prog.txt` | raíz | Programa corto (tiene error semántico hexa/octal intencional). |
+| `Prog2.txt` | raíz | Programa completo, semánticamente válido. |
 | `ProgError.txt` | raíz | Programa con error sintáctico (falta `;`). |
+| `PruebaPunto1.txt` | raíz | Verifica que `leer(a)` invalida la propagación de constantes. |
 
 ## Cómo compilar y ejecutar
 
@@ -183,6 +204,7 @@ java -cp build compilador.principal.ParserTest
 java -cp build compilador.frontend.PruebaVisitor
 java -cp build compilador.intermedio.PruebaIntermedio
 java -cp build compilador.principal.PruebaCodigo
+java -cp build compilador.principal.PruebaPunto7
 
 
 Los `.txt` de entrada deben estar en la carpeta desde donde se ejecuta el proceso.
@@ -195,21 +217,27 @@ Los `.txt` de entrada deben estar en la carpeta desde donde se ejecuta el proces
 | `PruebaVisitor` | Semántica: tabla de símbolos y errores de tipo. | Programa en duro (casos didácticos). |
 | `PruebaIntermedio` | Intermedia: muestra las cuádruplas TAC sin optimizar. | `Prog2.txt`. |
 | `PruebaCodigo` | Intermedia + optimización + generación: muestra TAC sin optimizar, TAC optimizado y assembly. | `Prog2.txt`. |
+| `PruebaPunto7` | Sintáctica: 15 casos de errores con línea y token encontrado. | Programas en duro. |
 
 ## Estado
 
 **Hecho:**
+
 - Análisis léxico, sintáctico con AST y prueba de precedencia.
-- Análisis semántico con tabla de símbolos y patrón Visitor formal.
-- Generación de código intermedio (cuádruplas TAC).
-- Optimización de código intermedio (plegado de constantes, propagación de constantes, eliminación de código muerto).
-- Generación de código objeto (pseudo-ensamblador x86).
+- Análisis semántico con tabla de símbolos, patrón Visitor formal y acumulación de errores sin cascada (cortafuegos `"error"`).
+- Validación de división entre cero literal (`0B`, `0O`, `0X`) en `PatronVisitor`.
+- Barrera semántica integrada en `PruebaCodigo`: detiene la compilación antes de generar TAC y Assembly si detecta errores.
+- Mensajes de error del parser con línea y token encontrado; validación de fin de archivo.
+- Generación de código intermedio (cuádruplas TAC), incluyendo `leer` y `escribir` como cuádruplas especiales `read`/`write`.
+- Optimización de código intermedio (plegado, propagación, eliminación de código muerto), con soporte para literales hexa con letras y sin generar negativos inválidos. La propagación de constantes invalida correctamente tras un `read`.
+- Generación de código objeto (pseudo-ensamblador x86), incluyendo pseudo-instrucciones `READ` y `WRITE`.
 - Reorganización en paquetes por fase.
+- Limpieza de código muerto en el lexer (se eliminaron `tablaSimbolos` y `palabrasReservadas`) y headers de autoría IA en `PruebaVisitor` y `ParserTest`.
 
 **Pendiente para siguiente iteración:**
-- Integrar la fase semántica como barrera en `PruebaCodigo`: correr `PatronVisitor` antes de generar TAC y detener el flujo si hay errores. Hoy `PruebaCodigo` no valida semántica y `Prog.txt` (hexa/octal) genera código sin advertencia.
-- Manejo de `leer` / `escribir` en TAC y ASM (hoy se ignoran en `IntermedioVisitor`).
-- Unificar ambos visitors bajo una interfaz común (opcional).
+
+- Unificar ambos visitors bajo una interfaz común (opcional, no afecta funcionalidad).
+- Conversión de literales con sufijo a decimal para que el ASM sea ejecutable por un ensamblador real (hoy el ASM es pseudo-código simbólico).
 
 ## Autores
 

@@ -6,6 +6,8 @@ import compilador.intermedio.TACInstruction;
 import compilador.intermedio.TACOptimizer;
 import compilador.frontend.ProgramNode;
 import compilador.frontend.Parser;
+import compilador.frontend.SymbolTable;
+import compilador.frontend.PatronVisitor;
 import compilador.lexico.Lexer;
 import compilador.lexico.LectorArchivo;
 import java.util.List;
@@ -27,6 +29,19 @@ public class PruebaCodigo {
         // Aquí ya se respetó la precedencia de operadores.
         Parser parser = new Parser(lexer);
         ProgramNode arbol = (ProgramNode) parser.programa();
+
+        // analisis semantico
+        SymbolTable tabla = new SymbolTable();
+        PatronVisitor semantico = new PatronVisitor(tabla);
+        semantico.visit(arbol);
+
+        if(semantico.hayErrores()){
+            for(String error : semantico.getErrores()){
+                System.out.println(error);
+            }
+            System.err.println("Se encontraron errores semanticos, no se puede continuar con la generación de código.");
+            return;
+        }
 
         // PASO 4: fase de código intermedio (AST → TAC).
         IntermedioVisitor gen = new IntermedioVisitor();

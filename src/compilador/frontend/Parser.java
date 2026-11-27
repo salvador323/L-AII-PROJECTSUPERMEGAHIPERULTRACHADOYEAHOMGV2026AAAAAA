@@ -1,3 +1,5 @@
+package compilador.frontend;
+
 /* __________________________________________________________________________________
     Parser.java
     Diseñado por:
@@ -8,6 +10,8 @@
     Clase que contiene toda la lógica del parser.
 __________________________________________________________________________________
 */
+import compilador.lexico.Lexer;
+import compilador.lexico.Token;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,7 +41,7 @@ public class Parser {
         if(coincide(atributoEsperado)){
             a = lexer.getToken();
         } else {
-            throw new RuntimeException("Error sintactico, se esperaba: " + atributoEsperado);
+            throw new RuntimeException("Error sintactico en la linea: "+ a.getLinea() + " se esperaba: " + atributoEsperado + " pero se encontró: " + a.getLexema());
         }
     }
 
@@ -50,7 +54,14 @@ public class Parser {
         List<Node> sentencias = sentencias();
 
         match("finprograma");
+
+        if(!"$".equals(a.getAtributo())){
+            throw new RuntimeException("Error sintactico en la linea:" + a.getLinea() + " hay texto despues de finprograma: " + a.getLexema());
+        }
+
         return new ProgramNode(nombrePrograma, sentencias);
+        
+        
     }
 
     // 2. <sentencias>	-> <sent><sentf>
@@ -106,7 +117,10 @@ public class Parser {
             return new WriteNode(exp);
         }
         else {
-            throw new RuntimeException("Sentencia no reconocida");
+            if("$".equals(a.getAtributo())){
+                throw new RuntimeException("Se llegó al final del archivo sin econtrar finprograma");
+            }
+            throw new RuntimeException("Sentencia no reconocida en la linea: " + a.getLinea());
         }
     }
 
@@ -176,7 +190,7 @@ public class Parser {
             else match("lithexa");
             return new Num(val);
         } else {
-            throw new RuntimeException("Expresion no válida: " + (a != null ? a.getLexema(): "EOF"));
+            throw new RuntimeException("Error sintactico en la linea:" + a.getLinea() + ". Expresion no válida: " + (a != null ? a.getLexema(): "EOF"));
         }
     }
 
@@ -188,7 +202,7 @@ public class Parser {
         if(coincide("binario")) match("binario");
         else if (coincide("octal")) match("octal");
         else if ( coincide("hexa")) match("hexa");
-        else throw new RuntimeException("Se esperaba un tipo de dato");
+        else throw new RuntimeException("Error sintactico en la linea:" + a.getLinea() + ". Se esperaba un tipo de dato");
         return t;
     }
 }

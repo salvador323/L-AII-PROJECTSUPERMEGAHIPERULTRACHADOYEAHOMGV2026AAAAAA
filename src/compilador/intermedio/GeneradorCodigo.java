@@ -38,6 +38,10 @@ public class GeneradorCodigo {
                     asm.add("DIV " + q.arg2);
                     asm.add("MOV " + q.result + ", eax");
                     break;
+                case "read":  asm.add("READ " + q.result); break;
+                case "write": asm.add("WRITE " + q.arg1);  break;
+
+
 
                 // op vacío = asignación simple.
                 // Solo se mueve arg1 al resultado.

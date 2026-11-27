@@ -9,6 +9,8 @@ import compilador.frontend.Var;
 import compilador.frontend.DeclGroupNode;
 import java.util.ArrayList;
 import java.util.List;
+import compilador.frontend.ReadNode;
+import compilador.frontend.WriteNode;
 
 public class IntermedioVisitor {
 
@@ -37,7 +39,8 @@ public class IntermedioVisitor {
             // Despacho por instanceof: cada tipo va a su visit.
             if (s instanceof DeclGroupNode)   visit((DeclGroupNode) s);
             else if (s instanceof Assign)     visit((Assign) s);
-            // read/write quedan pendientes para otra iteración.
+            else if (s instanceof ReadNode)   visit((ReadNode) s);
+            else if (s instanceof WriteNode)  visit((WriteNode) s);
         }
     }
 
@@ -48,6 +51,19 @@ public class IntermedioVisitor {
     public void visit(Assign n) {
         String val = genExpr(n.expresion);   // el resultado (temporal o literal)
         emit("", val, null, n.id);           // "id = val"
+    }
+    
+    // leer(a, b, c) -> una cuádrupla "read" por cada id
+    public void visit(ReadNode n) {
+        for (String id : n.ids) {
+            emit("read", null, null, id);
+        }
+    }
+
+    // escribir(expr) -> evalúa la expresión y emite "write valor"
+    public void visit(WriteNode n) {
+        String v = genExpr(n.expresion);
+        emit("write", v, null, null);
     }
 
     // ---------- EXPRESIONES ----------
